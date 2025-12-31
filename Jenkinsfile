@@ -36,7 +36,7 @@ pipeline {
             steps {
                 // Uses the SSH Agent plugin to provide your private key to Ansible
                 // Make sure 'azure-vm-ssh-key' matches your Credential ID exactly
-                sshagent(['azure-vm-ssh-key']) { 
+                sshagent(['azure-vm-key']) { 
                     sh 'ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ansible/deploy.yml -i ansible/inventory'
                 }
             }
