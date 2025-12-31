@@ -35,7 +35,7 @@ pipeline {
         stage('Deploy using Ansible') {
             steps {
                 // Runs the playbook located in your ansible folder
-                sh 'ansible-playbook ansible/deploy.yml -i ansible/inventory'
+                sh 'ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ansible/deploy.yml -i ansible/inventory'
             }
         }
     }
