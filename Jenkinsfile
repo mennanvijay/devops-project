@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                // Using 'main' branch and your 'github-cred'
+                // Pulls code from your repository using the 'main' branch
                 git branch: 'main', 
                     credentialsId: 'github-cred', 
                     url: 'https://github.com/mennanvijay/devops-project.git'
@@ -13,14 +13,14 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                // Builds the image using the Dockerfile in your root directory
+                // Builds the Docker image from the Dockerfile in your root directory
                 sh 'docker build -t mennanvijay/devops-app:latest .'
             }
         }
 
         stage('Push Image') {
             steps {
-                // Correctly handles 'Username with password' credential type
+                // Securely logs into Docker Hub using your saved credentials
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-pass', 
                                                   passwordVariable: 'PASS', 
                                                   usernameVariable: 'USER')]) {
@@ -34,16 +34,18 @@ pipeline {
 
         stage('Deploy using Ansible') {
             steps {
-                // This 'sshagent' block handles the private key authentication automatically
-                sshagent(['azure-vm-ssh-key']) {
+                // Uses the SSH Agent plugin to provide your private key to Ansible
+                // Make sure 'azure-vm-ssh-key' matches your Credential ID exactly
+                sshagent(['azure-vm-ssh-key']) { 
                     sh 'ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ansible/deploy.yml -i ansible/inventory'
+                }
             }
         }
     }
 
     post {
         always {
-            // Cleans up login credentials on the Jenkins runner
+            // Logs out of Docker to clear credentials from the Jenkins runner
             sh 'docker logout || true'
         }
     }
