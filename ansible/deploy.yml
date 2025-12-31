@@ -1,0 +1,11 @@
+- hosts: target
+  become: yes
+  tasks:
+    - name: Pull Docker image
+      docker_container:
+        name: devops_app
+        image: mennanvijay/devops-app:latest
+        state: started
+        ports:
+          - "80:80"
+
