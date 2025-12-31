@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                // Specified branch 'main' and used your existing credential ID
+                // Using 'main' branch and your 'github-cred'
                 git branch: 'main', 
                     credentialsId: 'github-cred', 
                     url: 'https://github.com/mennanvijay/devops-project.git'
@@ -13,17 +13,19 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                // Ensure there is a 'Dockerfile' in the root of your repo
+                // Builds the image using the Dockerfile in your root directory
                 sh 'docker build -t mennanvijay/devops-app:latest .'
             }
         }
 
         stage('Push Image') {
             steps {
-                // Using DockerHub credentials
-                withCredentials([string(credentialsId: 'dockerhub-pass', variable: 'PASS')]) {
+                // Correctly handles 'Username with password' credential type
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-pass', 
+                                                  passwordVariable: 'PASS', 
+                                                  usernameVariable: 'USER')]) {
                     sh '''
-                    echo $PASS | docker login -u mennanvijay --password-stdin
+                    echo $PASS | docker login -u $USER --password-stdin
                     docker push mennanvijay/devops-app:latest
                     '''
                 }
@@ -32,17 +34,16 @@ pipeline {
 
         stage('Deploy using Ansible') {
             steps {
-                // Ensure your inventory file and playbook exist at these paths
+                // Runs the playbook located in your ansible folder
                 sh 'ansible-playbook ansible/deploy.yml -i ansible/inventory'
             }
         }
     }
-    
+
     post {
         always {
-            // Good practice: Log out of Docker to clean up credentials on the runner
-            sh 'docker logout'
+            // Cleans up login credentials on the Jenkins runner
+            sh 'docker logout || true'
         }
     }
 }
-
