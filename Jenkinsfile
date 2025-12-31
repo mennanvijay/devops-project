@@ -4,7 +4,6 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                // Pulls code from your repository using the 'main' branch
                 git branch: 'main', 
                     credentialsId: 'github-cred', 
                     url: 'https://github.com/mennanvijay/devops-project.git'
@@ -13,14 +12,12 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                // Builds the Docker image from the Dockerfile in your root directory
                 sh 'docker build -t mennanvijay/devops-app:latest .'
             }
         }
 
         stage('Push Image') {
             steps {
-                // Securely logs into Docker Hub using your saved credentials
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-pass', 
                                                   passwordVariable: 'PASS', 
                                                   usernameVariable: 'USER')]) {
@@ -34,8 +31,7 @@ pipeline {
 
         stage('Deploy using Ansible') {
             steps {
-                // Uses the SSH Agent plugin to provide your private key to Ansible
-                // Make sure 'azure-vm-ssh-key' matches your Credential ID exactly
+                // This ID MUST match the one in your Screenshot (35)
                 sshagent(['azure-vm-key']) { 
                     sh 'ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ansible/deploy.yml -i ansible/inventory'
                 }
@@ -45,7 +41,6 @@ pipeline {
 
     post {
         always {
-            // Logs out of Docker to clear credentials from the Jenkins runner
             sh 'docker logout || true'
         }
     }
